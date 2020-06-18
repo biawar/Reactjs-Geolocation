@@ -1,43 +1,43 @@
 import React from 'react';
 import './App.css';
-import { Map, GoogleApiWrapper, Marker } from 'google-maps-react';
+import { Map, GoogleApiWrapper, Marker, DirectionsRenderer, Polyline } from 'google-maps-react';
 import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
 // If you want to use the provided css
 import 'react-google-places-autocomplete/dist/index.min.css'
-import { geocodeByAddress, getLatLng } from 'react-google-places-autocomplete';
-//import axios from 'axios';
+import { geocodeByAddress, geocodeByPlaceId, getLatLng } from 'react-google-places-autocomplete';
+
 
 class App extends React.Component {
- 
+
   constructor(props) {
     super(props);
     this.state = {
-        lat: -8.052240,
-        lng: -34.928612,
-        name: ''
+      lat: -8.052240,
+      lng: -34.928612,
+      name: '',
     }
   }
 
- 
 
-  // componentDidMount() {
-  //   geocodeByAddress('Mohali, Punjab')
-  //     .then(results => getLatLng(results[0]))
-  //     .then(({ lat, lng }) =>
-  //       console.log('Successfully got latitude and longitude', { lat, lng })
-  //     );
-  // }
+  onMarkerClick(props, marker, e) {
+    console.log('Dentro do onMarkerClick', props, marker, e);
+  }
 
-  teste() {
-    geocodeByAddress('Mohali, Punjab')
-      .then(results => getLatLng(results[0]))
-      .then(({ lat, lng }) =>
-        console.log('Successfully got latitude and longitude', { lat, lng }),
-        // this.setState({
-        //   lat: lat,
-        //   lng: lng,
-        // })
-      );
+  async teste(res) {
+    try {
+      console.log('Aqui', res)
+      const results = await geocodeByPlaceId(res)
+      console.log('geocodeByPlaceid', results)
+      const latLng = await getLatLng(results[0]);
+      console.log('Aqui', latLng)
+      this.setState({ lat: latLng.lat, lng: latLng.lng })
+      //   console.log('Successfully got latitude and longitude', { lat, lng }),
+      // );
+      return latLng;
+    } catch (error) {
+      console.log('Erro:', error);
+    }
+    return null;
   }
 
   render() {
@@ -45,16 +45,11 @@ class App extends React.Component {
       <div className="box">
         <div className="containerLateralSide">
           <h1>Digite o local</h1>
-          {(typeof this.state.name !== undefined) &&
           <GooglePlacesAutocomplete
-            onSelect={({ description }) => (
-              this.setState({ name: description }))
-            }
-
-            
+            onSelect={res => this.teste(res.place_id)}
           // onSelect= {this.state.name}
           // onClick={this.teste()}
-          />}
+          />
         </div>
 
         <div className="boxMap">
@@ -63,8 +58,13 @@ class App extends React.Component {
             zoom={8}
             className="mapStyles"
             initialCenter={{ lat: this.state.lat, lng: this.state.lng }}
+            center={{ lat: this.state.lat, lng: this.state.lng }}
           >
-            <Marker position={{ lat: -8.052240, lng: -34.928612 }} onClick={() => console.log("You clicked me!")} />
+            <Marker position={{ lat: this.state.lat, lng: this.state.lng }}
+              onClick={this.onMarkerClick}
+              draggable={true}
+            // position={bagulho => console.log("OLHA AQUI", bagulho)}
+            ></Marker>
           </Map>
         </div>
 
